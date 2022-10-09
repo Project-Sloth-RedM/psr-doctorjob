@@ -2,10 +2,12 @@ Config = {}
 
 -- General Config
 Config.UseTarget = GetConvar('UseTarget', 'false') == 'true' -- Use psr-target interactions (don't change this, go to your server.cfg and add setr UseTarget true)
+Config.DebugPoly = true
 Config.MinimalDoctors = 2 -- How many players with the doctor job to prevent the hospital check-in system from being used
 Config.DocCooldown = 1 -- Cooldown between doctor calls allowed, in minutes
 Config.WipeInventoryOnRespawn = true -- Enable or disable removing all the players items when they respawn at the hospital
 Config.AlertShowInfo = 2 -- How many injuries a player must have before being alerted about them
+Config.DispatchTimer = 180
 
 -- Payments
 Config.BillCost = 2000 -- Price that players are charged for using the hospital check-in system
@@ -47,7 +49,7 @@ Config.Locations = {
 	    [1] = vector3(-286.28, 804.77, 119.3), -- Valentine
     },
     ["duty"] = {
-        [1] = vector3(-284.49, 807.49, 119.38), -- Valentine
+        [1] = vector3(-284.63, 808.36, 119.39), -- Valentine
         [2] = vector3(2385.24, -1374.19, 46.55), -- Saint Denis
         [3] = vector3(-3650.37, -2645.63, -13.45), -- Armadillo
     },

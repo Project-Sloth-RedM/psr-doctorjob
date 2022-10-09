@@ -526,36 +526,17 @@ end
 -- Events
 
 RegisterNetEvent('hospital:client:doctorAlert', function(coords, text)
-    local street1, street2 = GetStreetNameAtCoord(coords.x, coords.y, coords.z)
-    local street1name = GetStreetNameFromHashKey(street1)
-    local street2name = GetStreetNameFromHashKey(street2)
-    PSRCore.Functions.Notify({text = text, caption = street1name.. ' ' ..street2name}, 'doctor')
-    PlaySound(-1, "Lose_1st", "GTAO_FM_Events_Soundset", 0, 0, 1)
+    PSRCore.Functions.Notify({text = text}, 'doctor')
     local transG = 250
-    local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
-    local blip2 = AddBlipForCoord(coords.x, coords.y, coords.z)
     local blipText = Lang:t('info.ems_alert', {text = text})
-    SetBlipSprite(blip, 153)
-    SetBlipSprite(blip2, 161)
-    SetBlipColour(blip, 1)
-    SetBlipColour(blip2, 1)
-    SetBlipDisplay(blip, 4)
-    SetBlipDisplay(blip2, 8)
-    SetBlipAlpha(blip, transG)
-    SetBlipAlpha(blip2, transG)
-    SetBlipScale(blip, 0.8)
-    SetBlipScale(blip2, 2.0)
-    SetBlipAsShortRange(blip, false)
-    SetBlipAsShortRange(blip2, false)
-    PulseBlip(blip2)
-    BeginTextCommandSetBlipName('STRING')
-    AddTextComponentString(blipText)
-    EndTextCommandSetBlipName(blip)
+    local blip = N_0x554d9d53f696d002(1664425300, coords.x, coords.y, coords.z) --AddBlip
+    SetBlipSprite(blip, 960467426, 1)
+    SetBlipScale(blip, 0.2)
+    Citizen.InvokeNative(0x9CB1A1623062F402, blip, text) --SetBlipName
     while transG ~= 0 do
-        Wait(180 * 4)
+        Wait(Config.DispatchTimer * 4)
         transG = transG - 1
-        SetBlipAlpha(blip, transG)
-        SetBlipAlpha(blip2, transG)
+        --Citizen.InvokeNative(0x45FF974EEE1C8734, blip, transG) --SetBlipAlpha
         if transG == 0 then
             RemoveBlip(blip)
             return

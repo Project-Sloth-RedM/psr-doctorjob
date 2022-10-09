@@ -349,7 +349,7 @@ CreateThread(function()
     for k, v in pairs(Config.Locations["vehicle"]) do
         local boxZone = BoxZone:Create(vector3(vector3(v.x, v.y, v.z)), 5, 5, {
             name = "vehicle" .. k,
-            debugPoly = false,
+            debugPoly = Config.DebugPoly,
             heading = 70,
             minZ = v.z - 2,
             maxZ = v.z + 2,
@@ -372,7 +372,7 @@ if Config.UseTarget then
         for k, v in pairs(Config.Locations["duty"]) do
             exports['psr-target']:AddBoxZone("duty" .. k, vector3(v.x, v.y, v.z), 1.5, 1, {
                 name = "duty" .. k,
-                debugPoly = false,
+                debugPoly = Config.DebugPoly,
                 heading = -20,
                 minZ = v.z - 2,
                 maxZ = v.z + 2,
@@ -392,7 +392,7 @@ if Config.UseTarget then
         for k, v in pairs(Config.Locations["stash"]) do
             exports['psr-target']:AddBoxZone("stash" .. k, vector3(v.x, v.y, v.z), 1, 1, {
                 name = "stash" .. k,
-                debugPoly = false,
+                debugPoly = Config.DebugPoly,
                 heading = -20,
                 minZ = v.z - 2,
                 maxZ = v.z + 2,
@@ -412,7 +412,7 @@ if Config.UseTarget then
         for k, v in pairs(Config.Locations["armory"]) do
             exports['psr-target']:AddBoxZone("armory" .. k, vector3(v.x, v.y, v.z), 1, 1, {
                 name = "armory" .. k,
-                debugPoly = false,
+                debugPoly = Config.DebugPoly,
                 heading = -20,
                 minZ = v.z - 2,
                 maxZ = v.z + 2,

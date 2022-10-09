@@ -3,6 +3,8 @@ local deadAnim = "dead_e"
 local hold = 5
 deathTime = 0
 
+local sharedKeys = PSRCore.Shared.Keybinds
+
 -- Functions
 
 local function loadAnimDict(dict)
@@ -62,62 +64,82 @@ function DeathTimer()
         Wait(1000)
         deathTime = deathTime - 1
         if deathTime <= 0 then
-            if IsControlPressed(0, 38) and hold <= 0 and not isInHospitalBed then
+            if IsControlPressed(0, sharedKeys['E']) and hold <= 0 and not isInHospitalBed then
                 TriggerEvent("hospital:client:RespawnAtHospital")
                 hold = 5
             end
-            if IsControlPressed(0, 38) then
+            if IsControlPressed(0, sharedKeys['E']) then
                 if hold - 1 >= 0 then
                     hold = hold - 1
                 else
                     hold = 0
                 end
             end
-            if IsControlReleased(0, 38) then
+            if IsControlReleased(0, sharedKeys['E']) then
                 hold = 5
             end
         end
     end
 end
 
-local function DrawTxt(x, y, width, height, scale, text, r, g, b, a, _)
-    SetTextFont(4)
-    SetTextProportional(0)
-    SetTextScale(scale, scale)
-    SetTextColour(r, g, b, a)
-    SetTextDropShadow(0, 0, 0, 0,255)
-    SetTextEdge(2, 0, 0, 0, 255)
-    SetTextDropShadow()
-    SetTextOutline()
-    SetTextEntry("STRING")
-    AddTextComponentString(text)
-    DrawText(x - width/2, y - height/2 + 0.005)
+-- local function DrawTxt(x, y, width, height, scale, text, r, g, b, a, _)
+--     SetTextFont(4)
+--     SetTextProportional(0)
+--     SetTextScale(scale, scale)
+--     SetTextColour(r, g, b, a)
+--     SetTextDropShadow(0, 0, 0, 0,255)
+--     SetTextEdge(2, 0, 0, 0, 255)
+--     SetTextDropShadow()
+--     SetTextOutline()
+--     SetTextEntry("STRING")
+--     AddTextComponentString(text)
+--     DrawText(x - width/2, y - height/2 + 0.005)
+-- end
+
+function DrawTxt(str, x, y, w, h, enableShadow, col1, col2, col3, a, centre)
+    local str = CreateVarString(10, "LITERAL_STRING", str)
+    SetTextScale(w, h)
+    SetTextColor(math.floor(col1), math.floor(col2), math.floor(col3), math.floor(a))
+    SetTextCentre(centre)
+    if enableShadow then SetTextDropshadow(1, 0, 0, 0, 255) end
+    DisplayText(str, x, y)
 end
 
 -- Damage Handler
 
-AddEventHandler('gameEventTriggered', function(event, data)
-    if event == "CEventNetworkEntityDamage" then
-        local victim, attacker, victimDied, weapon = data[1], data[2], data[4], data[7]
-        if not IsEntityAPed(victim) then return end
-        if victimDied and NetworkGetPlayerIndexFromPed(victim) == PlayerId() and IsEntityDead(PlayerPedId()) then
-            if not InLaststand then
+CreateThread(function()
+	while true do
+		Wait(10)
+		local player = PlayerId()
+		if NetworkIsPlayerActive(player) then
+            local playerPed = PlayerPedId()
+            if IsEntityDead(playerPed) and not InLaststand then
                 SetLaststand(true)
-            elseif InLaststand and not isDead then
+            elseif IsEntityDead(playerPed) and InLaststand and not isDead then
                 SetLaststand(false)
-                local playerid = NetworkGetPlayerIndexFromPed(victim)
-                local playerName = GetPlayerName(playerid) .. " " .. "("..GetPlayerServerId(playerid)..")" or Lang:t('info.self_death')
-                local killerId = NetworkGetPlayerIndexFromPed(attacker)
-                local killerName = GetPlayerName(killerId) .. " " .. "("..GetPlayerServerId(killerId)..")" or Lang:t('info.self_death')
-                local weaponLabel = PSRCore.Shared.Weapons[weapon].label or 'Unknown'
-                local weaponName = PSRCore.Shared.Weapons[weapon].name or 'Unknown'
-                TriggerServerEvent("psr-log:server:CreateLog", "death", Lang:t('logs.death_log_title', {playername = playerName, playerid = GetPlayerServerId(playerid)}), "red", Lang:t('logs.death_log_message', {killername = killerName, playername = playerName, weaponlabel = weaponLabel, weaponname = weaponName}))
+                local killer_2, killerWeapon = NetworkGetEntityKillerOfPlayer(player)
+                local killer = GetPedSourceOfDeath(playerPed)
+
+                if killer_2 ~= 0 and killer_2 ~= -1 then
+                    killer = killer_2
+                end
+
+                local killerId = NetworkGetPlayerIndexFromPed(killer)
+                local killerName = killerId ~= -1 and GetPlayerName(killerId) .. " " .. "("..GetPlayerServerId(killerId)..")" or Lang:t('info.self_death')
+                local weaponLabel = Lang:t('info.wep_unknown')
+                local weaponName = Lang:t('info.wep_unknown')
+                local weaponItem = sharedWeapons[killerWeapon]
+                if weaponItem then
+                    weaponLabel = weaponItem.label
+                    weaponName = weaponItem.name
+                end
+                TriggerServerEvent("qb-log:server:CreateLog", "death", Lang:t('logs.death_log_title', {playername = GetPlayerName(-1), playerid = GetPlayerServerId(player)}), "red", Lang:t('logs.death_log_message', {killername = killerName, playername = GetPlayerName(player), weaponlabel = weaponLabel, weaponname = weaponName}))
                 deathTime = Config.DeathTime
                 OnDeath()
                 DeathTimer()
             end
-        end
-    end
+		end
+	end
 end)
 
 -- Threads
@@ -146,9 +168,9 @@ CreateThread(function()
             if isDead then
                 if not isInHospitalBed then
                     if deathTime > 0 then
-                        DrawTxt(0.93, 1.44, 1.0,1.0,0.6, Lang:t('info.respawn_txt', {deathtime = math.ceil(deathTime)}), 255, 255, 255, 255)
+                        DrawTxt(Lang:t('info.respawn_txt', {deathtime = math.ceil(deathTime)}), 0.50, 0.80, 0.5, 0.5, true, 255, 0, 0, 200, true)
                     else
-                        DrawTxt(0.865, 1.44, 1.0, 1.0, 0.6, Lang:t('info.respawn_revive', {holdtime = hold, cost = Config.BillCost}), 255, 255, 255, 255)
+                        DrawTxt(Lang:t('info.respawn_revive', {cost = Config.BillCost}), 0.50, 0.80, 0.5, 0.5, true, 255, 0, 0, 200, true)
                     end
                 end
 
@@ -176,16 +198,16 @@ CreateThread(function()
                 sleep = 5
 
                 if LaststandTime > Laststand.MinimumRevive then
-                    DrawTxt(0.94, 1.44, 1.0, 1.0, 0.6, Lang:t('info.bleed_out', {time = math.ceil(LaststandTime)}), 255, 255, 255, 255)
+                    DrawTxt(Lang:t('info.bleed_out', {time = math.ceil(LaststandTime)}), 0.50, 0.80, 0.5, 0.5, true, 255, 255, 255, 200, true)
                 else
-                    DrawTxt(0.845, 1.44, 1.0, 1.0, 0.6, Lang:t('info.bleed_out_help', {time = math.ceil(LaststandTime)}), 255, 255, 255, 255)
-                    if not doctorNotified then
-                        DrawTxt(0.91, 1.40, 1.0, 1.0, 0.6, Lang:t('info.request_help'), 255, 255, 255, 255)
+                    DrawTxt(Lang:t('info.bleed_out_help', {time = math.ceil(LaststandTime)}), 0.50, 0.80, 0.5, 0.5, true, 255, 255, 255, 200, true)
+                    if not emsNotified then
+                        DrawTxt(Lang:t('info.request_help'), 0.50, 0.85, 0.5, 0.5, true, 255, 255, 255, 200, true)
                     else
-                        DrawTxt(0.90, 1.40, 1.0, 1.0, 0.6, Lang:t('info.help_requested'), 255, 255, 255, 255)
+                        DrawTxt(Lang:t('info.help_requested'), 0.50, 0.85, 0.5, 0.5, true, 255, 255, 255, 200, true)
                     end
 
-                    if IsControlJustPressed(0, 47) and not doctorNotified then
+                    if IsControlJustPressed(0, sharedKeys['G']) and not doctorNotified then
                         TriggerServerEvent('hospital:server:doctorAlert', Lang:t('info.civ_down'))
                         doctorNotified = true
                     end
